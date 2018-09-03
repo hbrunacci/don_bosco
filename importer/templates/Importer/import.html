@@ -1,0 +1,13 @@
+{% extends 'Importer/base.html' %}
+{% block content %}
+
+    <form action="{% url 'importer:upload_csv' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+
+    <input type="file" id = 'csv_file' name="csv_file" class=inputfile />
+    <label for = "csv_file"> Elija un archivo </label>
+    <input type="submit" value="Upload" />
+
+    </form>
+
+{% endblock %}
+
