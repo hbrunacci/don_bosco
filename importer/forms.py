@@ -11,3 +11,4 @@ class SalesforceFileForm(forms.ModelForm):
 
     class Meta:
         model = SalesforceFile
+        fields = ['date_range_with_format']
