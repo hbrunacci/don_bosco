@@ -10,7 +10,7 @@ def process_file(csv_file):
         process_data(lines, 'PF')
     if lines[0][8:22].strip() == 'COBRO EXPRESS':
         process_data(lines, 'CE')
-    if lines[0][0:7].strip() == '04003345':
+    if lines[0][0:8].strip() == '04003345':
         process_data(lines, 'PMC')
     return True
 
@@ -19,6 +19,7 @@ def process_data(lines, file_type):
     # loop over the lines and save them in db. If error , store as string and then display
     line_pos = 1
     description = ''
+    errores = []
     for line in lines:
         if len(line) > 0:
             print(line_pos)
@@ -44,7 +45,7 @@ def process_data(lines, file_type):
                 # datos de cobro
                 terminal_id = get_terminal_id(line, file_type)
                 order_nro = get_order_nro(line, file_type)
-
+                error = ''
                 new_item = SalesforceFile.objects.filter(terminal_id=terminal_id, order_nro=order_nro).first()
                 if not new_item:
                     new_item = SalesforceFile()
@@ -58,7 +59,7 @@ def process_data(lines, file_type):
                 new_item.agreement_type = get_agreement_type(line, file_type)
                 new_item.amount = get_amount(line, file_type)
                 new_item.bank = get_bank(line, file_type)
-                new_item.contact_id = get_contact_id(line, file_type)
+                new_item.contact_id, error = get_contact_id(line, file_type)
                 new_item.first_payment_date = get_first_payment_date(line, file_type)
                 new_item.currency = get_currency(line, file_type)
                 new_item.payment_method = get_payment_method(line, file_type)
@@ -69,8 +70,10 @@ def process_data(lines, file_type):
                 new_item.use_loyalty_card = get_use_loyalty_card(line, file_type)
                 new_item.campaign_code = get_campaign_code(line, file_type)
                 new_item.save()
+                if len(error) > 0:
+                    errores += (error[0], error[1])
             line_pos += 1
-    return True
+    return errores
 
 
 def get_description(line, file_type):
@@ -89,7 +92,7 @@ def get_terminal_id(line, file_type):
     if file_type == 'CE':
         data = int(line[0:7])
     if file_type == 'PMC':
-        data = int(line[27:45])
+        data = int(line[69:77])
     return data
 
 
@@ -99,7 +102,7 @@ def get_order_nro(line, file_type):
     if file_type == 'CE':
         data = int(line[31:41])
     if file_type == 'PMC':
-        data = int(line[27:45])
+        data = line[77:83]
     return data
 
 
@@ -109,7 +112,7 @@ def get_campaign_code(line, file_type):
     if file_type == 'CE':
         campaing_nro = int(line[28:30])
     if file_type == 'PMC':
-        campaing_nro = int(line[24:27])
+        campaing_nro = 0
 
     if campaing_nro in (0, 50, 20, 500):
         campaing_nro = 245 + datetime.now().month + ((2018 - datetime.now().year) * 12)
@@ -124,11 +127,11 @@ def get_campaign_code(line, file_type):
 
 def get_partner_id(line, file_type):
     if file_type == 'PF':
-        data = int(line[27:45])
+        data = get_partner_nro(line, file_type)
     if file_type == 'CE':
-        data = int(line[30:35])
+        data = get_partner_nro(line, file_type)
     if file_type == 'PMC':
-        data = int(line[27:45])
+        data = get_partner_nro(line, file_type)
     return data
 
 
@@ -138,14 +141,22 @@ def get_partner_nro(line, file_type):
     if file_type == 'CE':
         data = int(line[30:35])
     if file_type == 'PMC':
-        data = int(line[27:45])
+        data = int(line[1:9])
     return data
 
 
-def get_contact_id(line, file_type):
+def get_contact_id(line, file_type, error=''):
     partner_nro = int(get_partner_nro(line, file_type))
-    SF_contac = Sf_Ids.objects.get(partner_id=partner_nro)
-    return SF_contac.sf_partner_id
+    try:
+        if file_type == 'PMC':
+            error = ('Nro de documento', partner_nro)
+        else:
+            error = ('Nro de sistema anterior', partner_nro)
+        SF_contac = Sf_Ids.objects.get(partner_id=partner_nro)
+    except:
+        return 0, error
+    error = ''
+    return SF_contac.sf_partner_id, error
 
 
 def get_agreement_date(line, file_type):
@@ -154,7 +165,7 @@ def get_agreement_date(line, file_type):
     if file_type == 'CE':
         date = datetime.strptime(line[0:8], '%Y%m%d').date()
     if file_type == 'PMC':
-        date = datetime.strptime(line[50:57], '%Y%m%d').date()
+        date = datetime.strptime(line[69:77], '%Y%m%d').date()
     return date
 
 
@@ -164,7 +175,7 @@ def get_agreement_end_date(line, file_type):
     if file_type == 'CE':
         date = datetime.strptime(line[0:8], '%Y%m%d').date()
     if file_type == 'PMC':
-        date = datetime.strptime(line[50:57], '%Y%m%d').date()
+        date = datetime.strptime(line[69:77], '%Y%m%d').date()
     return date
 
 
@@ -174,7 +185,7 @@ def get_amount(line, file_type):
     if file_type == 'CE':
         amount = line[14:22]
     if file_type == 'PMC':
-        amount = line[14:22]
+        amount = line[58:68]
     amount = float(amount)/100
     return amount
 
@@ -185,7 +196,7 @@ def get_first_payment_date(line, file_type):
     if file_type == 'CE':
         date = datetime.strptime(line[0:8], '%Y%m%d').date()
     if file_type == 'PMC':
-        date = datetime.strptime(line[50:57], '%Y%m%d').date()
+        date = datetime.strptime(line[69:77], '%Y%m%d').date()
     return date
 
 
@@ -195,7 +206,7 @@ def get_use_loyalty_card(line, file_type):
     if file_type == 'CE':
         campaing_nro = int(line[28:30])
     if file_type == 'PMC':
-        campaing_nro = int(line[24:27])
+        campaing_nro = 0
     if campaing_nro in (0, 50, 20, 500):
         return False
     return True

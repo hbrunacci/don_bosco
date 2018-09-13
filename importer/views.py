@@ -27,15 +27,19 @@ def upload_csv(request):
     try:
         csv_file = request.FILES["csv_file"]
 
-        if process_file(csv_file):
-            return HttpResponseRedirect(reverse("importer:upload_csv"))
+        response = process_file(csv_file)
+        if response == 'ok':
+            return HttpResponseRedirect(reverse("importer:upload_csv"), {'errores': response })
+            pass
+        else:
+            return HttpResponseRedirect(reverse("importer:upload_csv"), {'errores': response})
             pass
 
     except Exception as e:
         logging.getLogger("error_logger").error("Unable to upload file. "+repr(e))
         messages.error(request,"Unable to upload file. "+repr(e))
+        return HttpResponseRedirect(reverse("importer:upload_csv"))
 
-    return HttpResponseRedirect(reverse("importer:upload_csv"))
 
 
 def export(request):
