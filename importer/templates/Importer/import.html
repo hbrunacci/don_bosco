@@ -1,11 +1,21 @@
 {% extends 'Importer/base.html' %}
 {% block content %}
+    {% load bootstrap3 %}
 
     <form action="{% url 'importer:upload_csv' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
-    <div>
-        <input type="file" id = 'csv_file' name="csv_file" class=inputfile />
-        <label for = "csv_file"> Elija un archivo </label>
-        <input type="submit" value="Upload" />
+    <div lang="es">
+     </div>
+    </br>
+    <div class="container">
+        <div class="custom-file">
+            <input type="file" class="custom-file-input" id='csv_file' name="csv_file" lang="es">
+            <label class="custom-file-label" for="customFile">Seleccione archivo de medio de pago</label>
+            <div class="container">
+                <br/>
+                <input type="submit" class="btn btn-primary btn-block" >
+            </div>
+        </div>
+    </div>
     </div>
         {% for error in errores %}
             <div>
@@ -14,6 +24,7 @@
             </div>
         {% endfor %}
     </form>
+
 
 
 {% endblock %}
