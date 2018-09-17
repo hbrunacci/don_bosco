@@ -6,13 +6,17 @@ from datetime import datetime
 def process_file(csv_file):
     file_data = csv_file.read().decode("utf-8")
     lines = file_data.split("\r\n")
+    errores = []
     if lines[0][9:22].strip() == 'PAGO FACIL':
-        process_data(lines, 'PF')
+        errores = process_data(lines, 'PF')
     if lines[0][8:22].strip() == 'COBRO EXPRESS':
-        process_data(lines, 'CE')
+        errores = process_data(lines, 'CE')
     if lines[0][0:8].strip() == '04003345':
-        process_data(lines, 'PMC')
-    return True
+        errores = process_data(lines, 'PMC')
+    if len(errores) > 0:
+        return False,errores
+    else:
+        return True,errores
 
 
 def process_data(lines, file_type):
@@ -78,11 +82,11 @@ def process_data(lines, file_type):
 
 def get_description(line, file_type):
     if file_type == 'PF':
-        data = line[9:22]
+        data = 'Pago Fácil'
     if file_type == 'CE':
-        data = line[8:22]
+        data = 'Cobro Express'
     if file_type == 'PMC':
-        data = 'PAGO MIS CUENTAS'
+        data = 'Pago Mis Cuentas'
     return data
 
 
@@ -225,7 +229,7 @@ def get_currency(line, file_type):
 
 
 def get_frequency(line, file_type):
-    return 'Esporadica'
+    return 'Esporádica'
 
 
 def get_source(line, file_type):

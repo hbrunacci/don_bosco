@@ -2,6 +2,19 @@
 {% block content %}
     {% load bootstrap3 %}
 
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <br>
+                <div class="alert alert-info" role="alert">
+                    <button class="close" data-dismiss="alert">
+                        &times;
+                    </button>
+                    <strong>Info: </strong>{{ message }}
+                </div>
+            {% endfor %}
+        </ul>
+    {% endif %}
     <form action="{% url 'importer:upload_csv' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
     <div lang="es">
      </div>
@@ -19,7 +32,7 @@
     </div>
         {% for error in errores %}
             <div>
-                <p>{{  error }}</p>
+                <p>{{ error }}</p>
                 <p>{{ post.text|linebreaksbr }}</p>
             </div>
         {% endfor %}
