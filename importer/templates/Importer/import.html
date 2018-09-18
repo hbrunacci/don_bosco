@@ -22,16 +22,23 @@
     <div class="container">
         <div class="custom-file">
             <input type="file" class="custom-file-input" id='csv_file' name="csv_file" lang="es">
-            <label class="custom-file-label" for="customFile">Seleccione archivo de medio de pago</label>
+            <label class="custom-file-label" for="csv_file">Seleccione archivo de medio de pago</label>
             <div class="container">
                 <br/>
                 <input type="submit" class="btn btn-primary btn-block" >
             </div>
         </div>
     </div>
-   </form>
+
+       </form>
 
 
+    <script >
+    $('.custom-file-input').on('change', function() {
+    let fileName = $(this).val().split('\\').pop();
+    $(this).siblings('.custom-file-label').addClass('selected').html(fileName);
+    });
+    </script>
 
 {% endblock %}
 
