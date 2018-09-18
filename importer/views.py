@@ -29,11 +29,11 @@ def upload_csv(request):
         response, errores = process_file(csv_file)
         if response:
             messages.add_message(request, messages.INFO, 'Archivo procesado correctamente')
-            return HttpResponseRedirect(reverse("importer:upload_csv"), {'errores': response})
+            return HttpResponseRedirect(reverse("importer:upload_csv"), {'errores': errores})
             pass
         else:
             messages.add_message(request, messages.INFO, 'Algunos donantes no pudieron se identificados')
-            return HttpResponseRedirect(reverse("importer:upload_csv"), {'errores': response})
+            return HttpResponseRedirect(reverse("importer:upload_csv"), {'errores': errores})
             pass
 
     except Exception as e:
@@ -63,19 +63,19 @@ def exportar_csv(request):
                 agreement_date__range=range)
             objects_total = objetos.count()
             filename = 'SF_%s_%s (%i).csv' %(range[0], range[1], objects_total)
-
+            csv.register_dialect("dbosco", delimiter=",")
 
             # Crear el objeto HttpResponse con sus cabeceras
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = 'attachment; filename=' + filename
 
             # Se usa el response como un "archivo" destino
-            writer = csv.writer(response, delimiter=',', quoting=csv.QUOTE_NONE, escapechar=' ')
+            writer = csv.writer(response, dialect="dbosco")
             # encabezado del archivo
-            header = ['Donante,Banco,Canal de Ingreso, Tratamiento, CBU, Descripción, Estado, Fecha de compromiso, Fecha ' \
-                  'de fin de compromiso, Fecha para realizar primer  cobranza, Forma de Pago, Frecuencia, Moneda, ' \
-                  'Monto en pesos,Monto en otra moneda, Número de Sobre, Tipo de compromiso, Donó tarjeta donante, ' \
-                  'Campaña']
+            header = ('Donante','Banco','Canal de Ingreso', 'Tratamiento', 'CBU', 'Descripción', 'Estado',
+                      'Fecha de compromiso', 'Fecha de fin de compromiso', 'Fecha para realizar primer  cobranza',
+                      'Forma de Pago', 'Frecuencia', 'Moneda','Monto en pesos','Monto en otra moneda',
+                      'Número de Sobre', 'Tipo de compromiso', 'Donó tarjeta donante', 'Campaña')
             row = header
             writer.writerow(row)
             for objeto in objetos:

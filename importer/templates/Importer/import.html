@@ -1,7 +1,7 @@
 {% extends 'Importer/base.html' %}
 {% block content %}
     {% load bootstrap3 %}
-
+    {{ errores }}
     {% if messages %}
         <ul class="messages">
             {% for message in messages %}
@@ -29,14 +29,7 @@
             </div>
         </div>
     </div>
-    </div>
-        {% for error in errores %}
-            <div>
-                <p>{{ error }}</p>
-                <p>{{ post.text|linebreaksbr }}</p>
-            </div>
-        {% endfor %}
-    </form>
+   </form>
 
 
 
