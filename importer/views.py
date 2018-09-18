@@ -59,8 +59,14 @@ def exportar_csv(request):
             # Obtener los objetos que deseas exportar e iterar
             # filtrado por los campos del formulario
             range = form.cleaned_data.get('date_range_with_format')
-            objetos = SalesforceFile.objects.filter(
+            exporteds = form.cleaned_data.get('is_exported')
+            if exporteds:
+                objetos = SalesforceFile.objects.filter(
                 agreement_date__range=range)
+            else:
+                objetos = SalesforceFile.objects.filter(
+                agreement_date__range=range, export_date__isnull=True)
+
             objects_total = objetos.count()
             filename = 'SF_%s_%s (%i).csv' %(range[0], range[1], objects_total)
             csv.register_dialect("dbosco", delimiter=",")
@@ -101,6 +107,7 @@ def exportar_csv(request):
                     objeto.use_loyalty_card,   # Donó tarjeta donante
                     objeto.campaign_code,   # Campaña
                     ]
+                objeto.export()
                 writer.writerow(row)
             return response
     return render(request, 'Importer/export.html', {'form': form})
