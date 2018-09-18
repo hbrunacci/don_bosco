@@ -4,20 +4,26 @@
 
 {% block content %}
 {# Display a form #}
-<br/>
-<form action="/exportar" method="post" class="form">
-    {% csrf_token %}
-    {% bootstrap_form form %}
-    {% buttons %}
-        <div class="form-group">
+    <br>
+    <form action="/exportar" method="post" class="form">
+        <div class="row">
+                  <container class = col-sm 4>
+                    <h4 align='justify'>Para la generacion del archivo, seleccione el rango de fechas correspondiente la fecha de donación informada por el medio de pago </h4>
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    {% buttons %}
+                    <div class="form-group">
+                    <button type="download" class="btn btn-primary">
+                        {% bootstrap_icon "download" %} Descargar
+                    </button>
+                    </div>
+                    {% endbuttons %}
+                </container>
 
-        <button type="download" class="btn btn-primary">
-            {% bootstrap_icon "download" %} Descargar
-        </button>
-        </div>
-    {% endbuttons %}
+            </div>
 
-</form>
+         </div>
+          </form>
 
 <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
