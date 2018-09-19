@@ -158,7 +158,7 @@ def get_contact_id(line, file_type, error=''):
             error = ('Nro de sistema anterior', partner_nro)
         SF_contac = Sf_Ids.objects.get(partner_id=partner_nro)
     except:
-        return 0, error
+        return partner_nro, error
     error = ''
     return SF_contac.sf_partner_id, error
 
