@@ -1,4 +1,4 @@
-from .models import SalesforceFile
+from .models import SalesforceFile, Sf_Ids
 from django import forms
 from bootstrap_daterangepicker import widgets, fields
 
@@ -13,3 +13,10 @@ class SalesforceFileForm(forms.ModelForm):
     class Meta:
         model = SalesforceFile
         fields = ['date_range_with_format', 'is_exported']
+
+
+class UnidentifiedForm(forms.ModelForm):
+
+    class Meta:
+        model = Sf_Ids
+        fields = ['partner_id', 'sf_partner_id', ]

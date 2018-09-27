@@ -63,6 +63,7 @@ class SalesforceFile(BaseTable):
     campaign_code = models.CharField(max_length=50, default='')
     terminal_id = models.CharField(max_length=10,default='')
     order_nro = models.CharField(max_length=10, default='')
+    identificated = models.BooleanField()
 
     class Meta:
         verbose_name = 'Dato SalesForce'
@@ -74,6 +75,7 @@ class SalesforceFile(BaseTable):
 
     def __str__(self):
         return self.description
+
 
 
 class PagofacilFile(BaseTable):

@@ -6,24 +6,23 @@ from datetime import datetime
 def process_file(csv_file):
     file_data = csv_file.read().decode("utf-8")
     lines = file_data.split("\r\n")
-    errores = []
     if lines[0][9:22].strip() == 'PAGO FACIL':
-        errores = process_data(lines, 'PF')
+        error = process_data(lines, 'PF')
     if lines[0][8:22].strip() == 'COBRO EXPRESS':
-        errores = process_data(lines, 'CE')
+        error = process_data(lines, 'CE')
     if lines[0][0:8].strip() == '04003345':
-        errores = process_data(lines, 'PMC')
-    if len(errores) > 0:
-        return False,errores
+        error = process_data(lines, 'PMC')
+    if error:
+        return False
     else:
-        return True,errores
+        return True
 
 
 def process_data(lines, file_type):
     # loop over the lines and save them in db. If error , store as string and then display
     line_pos = 1
     description = ''
-    errores = []
+    error = False
     for line in lines:
         if len(line) > 0:
             print(line_pos)
@@ -49,7 +48,6 @@ def process_data(lines, file_type):
                 # datos de cobro
                 terminal_id = get_terminal_id(line, file_type)
                 order_nro = get_order_nro(line, file_type)
-                error = ''
                 new_item = SalesforceFile.objects.filter(terminal_id=terminal_id, order_nro=order_nro).first()
                 if not new_item:
                     new_item = SalesforceFile()
@@ -63,7 +61,7 @@ def process_data(lines, file_type):
                 new_item.agreement_type = get_agreement_type(line, file_type)
                 new_item.amount = get_amount(line, file_type)
                 new_item.bank = get_bank(line, file_type)
-                new_item.contact_id, error = get_contact_id(line, file_type)
+                new_item.contact_id, new_item.identificated = get_contact_id(line, file_type)
                 new_item.first_payment_date = get_first_payment_date(line, file_type)
                 new_item.currency = get_currency(line, file_type)
                 new_item.payment_method = get_payment_method(line, file_type)
@@ -73,11 +71,11 @@ def process_data(lines, file_type):
                 new_item.state = get_state(line, file_type)
                 new_item.use_loyalty_card = get_use_loyalty_card(line, file_type)
                 new_item.campaign_code = get_campaign_code(line, file_type)
+                if not new_item.identificated:
+                    error = True
                 new_item.save()
-                if len(error) > 0:
-                    errores += (error[0], error[1])
             line_pos += 1
-    return errores
+    return error
 
 
 def get_description(line, file_type):
@@ -149,18 +147,20 @@ def get_partner_nro(line, file_type):
     return data
 
 
-def get_contact_id(line, file_type, error=''):
+def get_contact_id(line, file_type, error={}):
     partner_nro = int(get_partner_nro(line, file_type))
+    # TODO: Mejorar usando get_or_created para identificar el socio o crear uno con -1 si no existe
     try:
-        if file_type == 'PMC':
-            error = ('Nro de documento', partner_nro)
-        else:
-            error = ('Nro de sistema anterior', partner_nro)
-        SF_contac = Sf_Ids.objects.get(partner_id=partner_nro)
+        SF_contact = Sf_Ids.objects.get(partner_id=partner_nro)
     except:
-        return partner_nro, error
-    error = ''
-    return SF_contac.sf_partner_id, error
+        new_sf_id = Sf_Ids()
+        new_sf_id.partner_id = partner_nro
+        new_sf_id.sf_partner_id = -1
+        new_sf_id.save()
+        return 0, False
+    if SF_contact.partner_id == '-1':
+        return 0, False
+    return SF_contact.sf_partner_id, True
 
 
 def get_agreement_date(line, file_type):

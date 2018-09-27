@@ -24,7 +24,6 @@ class SFAdmin(ImportExportModelAdmin):
     resource_class = Sf_Resource
 
 
-admin.site.register(PagofacilFile, PFAdmin)
 admin.site.register(Campaing, CampaingAdmin)
 admin.site.register(Sf_Ids, SF_idsAdmin)
 admin.site.register(SalesforceFile, SFAdmin)

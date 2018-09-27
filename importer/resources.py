@@ -12,10 +12,17 @@ class Pf_Resource(resources.ModelResource):
 
 
 class Sf_ids_Resource(resources.ModelResource):
+
     class Meta:
         model = Sf_Ids
         fields = ('sf_partner_id', 'partner_id')
         import_id_fields = ['partner_id']
+
+    def before_export(self, queryset, *args, **kwargs):
+        new_qs = queryset.filter(partner_id='-1')
+        queryset = new_qs
+
+
 
 
 class Campaing_Resourse(resources.ModelResource):

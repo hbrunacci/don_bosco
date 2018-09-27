@@ -1,0 +1,13 @@
+{% extends 'Importer/base.html' %}
+{% block content %}
+    {% load bootstrap3 %}
+
+    {% for partner in unidentified %}
+        <div class="list-group-item-info">
+            <div class="date">
+                {{ partner.partner_id}}
+            </div>
+        </div>
+    {% endfor %}
+
+{% endblock %}
