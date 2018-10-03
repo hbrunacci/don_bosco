@@ -119,7 +119,7 @@ def get_campaign_code(line, file_type):
     pay_date = get_agreement_date(line,file_type)
 
     if campaing_nro in (0, 50, 20, 500):
-        campaing_nro = 245 + pay_date.month + ((2018 - pay_date.year) * 12)
+        campaing_nro = 244 + pay_date.month + ((2018 - pay_date.year) * 12)
     try:
         sf_campaing = Campaing.objects.get(campaing_id=campaing_nro)
     except:
@@ -139,7 +139,7 @@ def get_partner_id(line, file_type):
 
 def get_partner_nro(line, file_type):
     if file_type == 'PF':
-        data = int(line[27:45])
+        data = int(line[27:33])
     if file_type == 'CE':
         data = int(line[30:35])
     if file_type == 'PMC':

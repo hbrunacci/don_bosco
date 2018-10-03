@@ -45,9 +45,17 @@ def upload_csv(request):
 def identificar(request):
 
     unidentified = Sf_Ids.objects.filter(sf_partner_id__in=[0, -1]).order_by('sf_partner_id', 'partner_id')
-    if "GET" == request.method:
-        return render(request, "Importer/identificar.html", {'unidentified': unidentified})
-
+    if request.method == 'POST':
+        for sf_id in request.POST:
+            if sf_id != 'csrfmiddlewaretoken':
+                if request.POST[sf_id]:
+                    updated_sf_id = Sf_Ids.objects.get(id=sf_id)
+                    updated_sf_id.sf_partner_id = request.POST[sf_id]
+                    updated_sf_id.save()
+                    print(updated_sf_id)
+    else:
+        form = UnidentifiedForm()
+    return render(request, 'Importer/identificar.html', {'unidentified': unidentified})
 
 def exportar_csv(request):
     form = SalesforceFileForm()

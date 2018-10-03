@@ -1,13 +1,27 @@
 {% extends 'Importer/base.html' %}
 {% block content %}
-    {% load bootstrap3 %}
-
-    {% for partner in unidentified %}
-        <div class="list-group-item-info">
-            <div class="date">
-                {{ partner.partner_id}}
-            </div>
-        </div>
-    {% endfor %}
-
+    <br>
+    <div class="row col-md-6 col-md-push-6 align-content-center" ><!-- you can use column classes md-3,md-5 as per your table width -->
+    <table class="table table-striped table-bordered text-center">
+        <thead>
+        <tr>
+            <th scope="col">DNI / Nro Anterior</th>
+            <th scope="col">Codigo SalesForce</th>
+            <th scope="col">Enviar</th>
+        </tr>
+        </thead>
+        <tbody>
+           <form action="{% url 'importer:identificar' %}" method="post" enctype="multipart/form-data">
+               {% csrf_token %}
+               {% for partner in unidentified %}
+                   <tr>
+                       <td>{{ partner.partner_id}}</td>
+                       <td> <input type="text" class="form-control" id="sf_partner" name="{{ partner.id }}"  placeholder="Nro Saledorce"></td>
+                       <td><input type="submit" class="btn btn-primary btn-block" ></td>
+                   </tr>
+               {% endfor %}
+           </form>
+        </tbody>
+    </table>
+    </div>
 {% endblock %}

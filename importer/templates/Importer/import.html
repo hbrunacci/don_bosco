@@ -14,22 +14,21 @@
             {% endfor %}
         </ul>
     {% endif %}
-    <form action="{% url 'importer:upload_csv' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
-    <div lang="es">
-     </div>
-    </br>
-    <div class="container">
-        <div class="custom-file">
-            <input type="file" class="custom-file-input" id='csv_file' name="csv_file" lang="es">
-            <label class="custom-file-label" for="csv_file">Seleccione archivo de medio de pago</label>
-            <div class="container">
-                <br/>
-                <input type="submit" class="btn btn-primary btn-block" >
+    <form action="{% url 'importer:upload_csv' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div lang="es"></div>
+        </br>
+        <div class="container">
+            <div class="custom-file">
+                <input type="file" class="custom-file-input" id='csv_file' name="csv_file" lang="es">
+                <label class="custom-file-label" for="csv_file">Seleccione archivo de medio de pago</label>
+                <div class="container">
+                    <br/>
+                    <input type="submit" class="btn btn-primary btn-block" >
+                </div>
             </div>
         </div>
-    </div>
-
-       </form>
+    </form>
 
 
     <script >
