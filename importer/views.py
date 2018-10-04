@@ -104,7 +104,7 @@ def exportar_csv(request):
 
             objects_total = objetos.count()
             filename = 'SF_%s_%s (%i).csv' %(range[0], range[1], objects_total)
-            csv.register_dialect("dbosco", delimiter=";")
+            csv.register_dialect("dbosco", delimiter=",")
 
             # Crear el objeto HttpResponse con sus cabeceras
             response = HttpResponse(content_type='text/csv')
