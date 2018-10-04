@@ -41,6 +41,12 @@ def upload_csv(request):
         messages.error(request,"No se pudo procesar el archivo "+repr(e))
         return HttpResponseRedirect(reverse("importer:upload_csv"))
 
+def check_sf_code(sf_id):
+    if len(sf_id) == 15:
+        if sf_id[0:4] == '00361':
+            return True
+    return False
+
 
 def identificar(request):
 
@@ -50,9 +56,15 @@ def identificar(request):
             if sf_id != 'csrfmiddlewaretoken':
                 if request.POST[sf_id]:
                     updated_sf_id = Sf_Ids.objects.get(id=sf_id)
-                    updated_sf_id.sf_partner_id = request.POST[sf_id]
-                    updated_sf_id.save()
-                    print(updated_sf_id)
+                    if check_sf_code(request.POST[sf_id]):
+                        updated_sf_id.sf_partner_id = request.POST[sf_id]
+                        updated_sf_id.save()
+                    else:
+                        messages.add_message(request, messages.INFO,
+                                             'El dato ingresado para %s no corresponde con un codigo '
+                                             'Salesforce valido' % updated_sf_id.partner_id)
+
+                    #print(updated_sf_id)
     else:
         form = UnidentifiedForm()
     return render(request, 'Importer/identificar.html', {'unidentified': unidentified})
@@ -71,8 +83,17 @@ def exportar_csv(request):
                 for item in for_update:
                     try:
                         sf_id = Sf_Ids.objects.get(partner_id=item.partner_id)
-                        item.contact_id = sf_id.sf_partner_id
-                        item.save()
+                        if check_sf_code(sf_id.sf_partner_id):
+                            item.contact_id = sf_id.sf_partner_id
+                            item.save()
+                        else:
+                            item.contact_id = -1
+                            item.save()
+                            if not sf_id.sf_partner_id in ['-1','0']:
+                                messages.add_message(request, messages.INFO,
+                                                     'El dato ingresado para %s no corresponde con un codigo '
+                                                     'Salesforce valido' % sf_id.partner_id)
+
                     except Exception as e:
                         pass
             if exporteds:
