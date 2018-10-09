@@ -43,7 +43,7 @@ def upload_csv(request):
 
 def check_sf_code(sf_id):
     if len(sf_id) == 15:
-        if sf_id[0:4] == '00361':
+        if sf_id[0:5] == '00361':
             return True
     return False
 
