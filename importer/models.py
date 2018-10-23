@@ -16,14 +16,8 @@ class BaseTable(models.Model):
         abstract = True
 
 class Sf_Ids(BaseTable):
-    sf_partner_id = models.CharField(max_length=100, null=False)
-    partner_id = models.CharField(max_length=10, null=False)
-
-    class Admin:
-        list_display = ('sf_partner_id', 'partner_id')
-        list_filter = ('sf_partner_id', 'partner_id')
-        ordering = ('-partner_id',)
-        search_fields = ('partner_id',)
+    sf_partner_id = models.CharField(max_length=100, null=False, verbose_name="ID SalesForces -15 digitos-")
+    partner_id = models.CharField(max_length=10, null=False, verbose_name='DNI o Nro de Socio')
 
     class Meta:
         verbose_name = 'Socio Salesforce'

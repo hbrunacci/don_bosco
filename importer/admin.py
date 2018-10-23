@@ -18,6 +18,8 @@ class CampaingAdmin(ImportExportModelAdmin):
 
 class SF_idsAdmin(ImportExportModelAdmin):
     resource_class = Sf_ids_Resource
+    list_display = ('sf_partner_id', 'partner_id')
+    search_fields = ('partner_id',)
 
 
 class SFAdmin(ImportExportModelAdmin):
@@ -25,6 +27,6 @@ class SFAdmin(ImportExportModelAdmin):
 
 
 admin.site.register(Campaing, CampaingAdmin)
-admin.site.register(Sf_Ids)
+admin.site.register(Sf_Ids, SF_idsAdmin)
 admin.site.register(SalesforceFile, SFAdmin)
 # Register your models here.
