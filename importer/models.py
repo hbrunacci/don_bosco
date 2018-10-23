@@ -19,9 +19,16 @@ class Sf_Ids(BaseTable):
     sf_partner_id = models.CharField(max_length=100, null=False)
     partner_id = models.CharField(max_length=10, null=False)
 
+    class Admin:
+        list_display = ('sf_partner_id', 'partner_id')
+        list_filter = ('sf_partner_id', 'partner_id')
+        ordering = ('-partner_id',)
+        search_fields = ('partner_id',)
+
     class Meta:
         verbose_name = 'Socio Salesforce'
         verbose_name_plural = 'Socios Salesforce'
+
 
 class Campaing(BaseTable):
     campaing_id = models.CharField(

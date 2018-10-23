@@ -25,7 +25,7 @@ def process_data(lines, file_type):
     error = False
     for line in lines:
         if len(line) > 0:
-            print(line_pos)
+            #print(line_pos)
             if line_pos == 1:
                 # datos de encabezado
                 description = str(get_description(line, file_type))
@@ -48,13 +48,16 @@ def process_data(lines, file_type):
                 # datos de cobro
                 terminal_id = get_terminal_id(line, file_type)
                 order_nro = get_order_nro(line, file_type)
-                new_item = SalesforceFile.objects.filter(terminal_id=terminal_id, order_nro=order_nro).first()
+                partner_id = get_partner_id(line, file_type)
+                new_item = SalesforceFile.objects.filter(terminal_id=terminal_id, order_nro=order_nro,partner_id=partner_id).first()
                 if not new_item:
                     new_item = SalesforceFile()
+                else:
+                    print(line_pos)
                 new_item.order_nro = order_nro
                 new_item.terminal_id = terminal_id
                 new_item.description = description.strip()
-                new_item.partner_id = get_partner_id(line, file_type)
+                new_item.partner_id = partner_id
                 new_item.partner_nro = get_partner_nro(line, file_type)
                 new_item.agreement_date = get_agreement_date(line, file_type)
                 new_item.agreement_end_date = get_agreement_end_date(line, file_type)
@@ -165,7 +168,7 @@ def get_contact_id(line, file_type, error={}):
 
 def get_agreement_date(line, file_type):
     if file_type == 'PF':
-        date = datetime.strptime(line[16:24], '%Y%m%d').date()
+        date = datetime.strptime(line[8:16], '%Y%m%d').date()
     if file_type == 'CE':
         date = datetime.strptime(line[0:8], '%Y%m%d').date()
     if file_type == 'PMC':
@@ -175,7 +178,7 @@ def get_agreement_date(line, file_type):
 
 def get_agreement_end_date(line, file_type):
     if file_type == 'PF':
-        date = datetime.strptime(line[16:24], '%Y%m%d').date()
+        date = datetime.strptime(line[8:16], '%Y%m%d').date()
     if file_type == 'CE':
         date = datetime.strptime(line[0:8], '%Y%m%d').date()
     if file_type == 'PMC':
@@ -196,7 +199,7 @@ def get_amount(line, file_type):
 
 def get_first_payment_date(line, file_type):
     if file_type == 'PF':
-        date = datetime.strptime(line[16:24], '%Y%m%d').date()
+        date = datetime.strptime(line[8:16], '%Y%m%d').date()
     if file_type == 'CE':
         date = datetime.strptime(line[0:8], '%Y%m%d').date()
     if file_type == 'PMC':

@@ -25,6 +25,6 @@ class SFAdmin(ImportExportModelAdmin):
 
 
 admin.site.register(Campaing, CampaingAdmin)
-admin.site.register(Sf_Ids, SF_idsAdmin)
+admin.site.register(Sf_Ids)
 admin.site.register(SalesforceFile, SFAdmin)
 # Register your models here.
