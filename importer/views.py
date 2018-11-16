@@ -27,13 +27,17 @@ def upload_csv(request):
     # if not GET, then proceed
     try:
         csv_file = request.FILES["csv_file"]
-        response = process_file(csv_file)
+        response, msg = process_file(csv_file)
         if response:
-            messages.add_message(request, messages.INFO, 'Archivo procesado correctamente')
+            messages.add_message(request, messages.INFO, 'Archivo procesado correctamente ')
+            messages.add_message(request, messages.INFO, msg)
+
             return HttpResponseRedirect(reverse("importer:upload_csv"))
         else:
-            messages.add_message(request, messages.INFO, 'Algunos donantes no pudieron se identificados, '
+            messages.add_message(request, messages.INFO, 'Algunos donantes no pudieron se identificados,'
                                                          'Se deben colocar en la pestaña de identificación')
+            messages.add_message(request, messages.INFO, msg)
+
             return HttpResponseRedirect(reverse("importer:upload_csv"))
 
     except Exception as e:

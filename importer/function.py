@@ -7,20 +7,22 @@ def process_file(csv_file):
     file_data = csv_file.read().decode("utf-8")
     lines = file_data.split("\r\n")
     if lines[0][9:22].strip() == 'PAGO FACIL':
-        error = process_data(lines, 'PF')
+        error, msg= process_data(lines, 'PF')
     if lines[0][8:22].strip() == 'COBRO EXPRESS':
-        error = process_data(lines, 'CE')
+        error, msg = process_data(lines, 'CE')
     if lines[0][0:8].strip() == '04003345':
-        error = process_data(lines, 'PMC')
+        error, msg = process_data(lines, 'PMC')
     if error:
-        return False
+        return False, msg
     else:
-        return True
+        return True, msg
 
 
 def process_data(lines, file_type):
     # loop over the lines and save them in db. If error , store as string and then display
     line_pos = 1
+    processed = 0
+    errors = 0
     description = ''
     error = False
     for line in lines:
@@ -76,9 +78,12 @@ def process_data(lines, file_type):
                 new_item.campaign_code = get_campaign_code(line, file_type)
                 if not new_item.identificated:
                     error = True
+                    errors += 1
+                processed += 1
                 new_item.save()
             line_pos += 1
-    return error
+    response_msg = '\nSe procesaron: %i datos, Errores encontrados: %i' % (processed, errors)
+    return error, response_msg
 
 
 def get_description(line, file_type):
