@@ -82,7 +82,7 @@ def process_data(lines, file_type):
                 processed += 1
                 new_item.save()
             line_pos += 1
-    response_msg = '\nSe procesaron: %i datos, Errores encontrados: %i' % (processed, errors)
+    response_msg = '\nbSe procesaron: %i datos, Errores encontrados: %i' % (processed, errors)
     return error, response_msg
 
 
@@ -195,11 +195,11 @@ def get_amount(line, file_type):
     if file_type == 'PF':
         amount = line[48:58]
     if file_type == 'CE':
-        amount = line[14:22]
+        amount = line[14:23]
     if file_type == 'PMC':
         amount = line[58:68]
     amount = float(amount)/100
-    return amount
+g    return amount
 
 
 def get_first_payment_date(line, file_type):
