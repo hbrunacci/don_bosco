@@ -25,7 +25,7 @@ SECRET_KEY = '5f@-crr_xz^-b0d)=6i18m2ve@61bkqs(0e&ehcb)_$u7pv)ju'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -56,11 +56,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'dbosco.urls'
 
+print(BASE_DIR)
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'importer\\templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -72,6 +73,8 @@ TEMPLATES = [
         },
     },
 ]
+
+print(TEMPLATES)
 
 WSGI_APPLICATION = 'dbosco.wsgi.application'
 
