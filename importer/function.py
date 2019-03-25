@@ -23,6 +23,7 @@ def process_data(lines, file_type):
     line_pos = 1
     processed = 0
     errors = 0
+    total_amount = 0
     description = ''
     error = False
     for line in lines:
@@ -76,13 +77,16 @@ def process_data(lines, file_type):
                 new_item.state = get_state(line, file_type)
                 new_item.use_loyalty_card = get_use_loyalty_card(line, file_type)
                 new_item.campaign_code = get_campaign_code(line, file_type)
+                total_amount += new_item.amount
                 if not new_item.identificated:
                     error = True
                     errors += 1
                 processed += 1
                 new_item.save()
             line_pos += 1
-    response_msg = '\nbSe procesaron: %i datos, Errores encontrados: %i' % (processed, errors)
+    response_msg = '\n Se procesaron: %i datos, Errores encontrados: %i, Monto total: %10.2f' % (processed,
+                                                                                             errors,
+                                                                                             total_amount)
     return error, response_msg
 
 
@@ -98,7 +102,7 @@ def get_description(line, file_type):
 
 def get_terminal_id(line, file_type):
     if file_type == 'PF':
-        data = int(line[59:64])
+        data = line[59:64]
     if file_type == 'CE':
         data = int(line[0:7])
     if file_type == 'PMC':
@@ -108,7 +112,7 @@ def get_terminal_id(line, file_type):
 
 def get_order_nro(line, file_type):
     if file_type == 'PF':
-        data = line[76:80]
+        data = line[72:80]
     if file_type == 'CE':
         data = int(line[31:41])
     if file_type == 'PMC':
@@ -199,7 +203,7 @@ def get_amount(line, file_type):
     if file_type == 'PMC':
         amount = line[58:68]
     amount = float(amount)/100
-g    return amount
+    return amount
 
 
 def get_first_payment_date(line, file_type):
