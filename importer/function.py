@@ -121,6 +121,7 @@ def get_order_nro(line, file_type):
 
 
 def get_campaign_code(line, file_type):
+    campaing_nro = 0
     if file_type == 'PF':
         campaing_nro = int(line[24:27])
     if file_type == 'CE':
@@ -131,7 +132,7 @@ def get_campaign_code(line, file_type):
     pay_date = get_agreement_date(line,file_type)
 
     if campaing_nro in (0, 50, 20, 500):
-        campaing_nro = 244 + pay_date.month + ((2018 - pay_date.year) * 12)
+        campaing_nro = 244 + pay_date.month + ((pay_date.year - 2018) * 12)
     try:
         sf_campaing = Campaing.objects.get(campaing_id=campaing_nro)
     except:
@@ -217,15 +218,16 @@ def get_first_payment_date(line, file_type):
 
 
 def get_use_loyalty_card(line, file_type):
+    campaing_nro = 0
     if file_type == 'PF':
         campaing_nro = int(line[24:27])
     if file_type == 'CE':
         campaing_nro = int(line[28:30])
     if file_type == 'PMC':
-        campaing_nro = 0
-    if campaing_nro in (0, 50, 20, 500):
         return False
-    return True
+    if campaing_nro in (50, 20, 500):
+        return True
+    return False
 
 
 def get_payment_method(line, file_type):
