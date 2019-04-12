@@ -23,6 +23,7 @@ def process_data(lines, file_type):
     line_pos = 1
     processed = 0
     errors = 0
+    total_amount = 0
     description = ''
     error = False
     for line in lines:
@@ -75,14 +76,20 @@ def process_data(lines, file_type):
                 new_item.process = get_process(line, file_type)
                 new_item.state = get_state(line, file_type)
                 new_item.use_loyalty_card = get_use_loyalty_card(line, file_type)
-                new_item.campaign_code = get_campaign_code(line, file_type)
+                campaing = get_campaign_code(line, file_type, new_item.agreement_date)
+                new_item.campaign_code = campaing.campaing_code
+                new_item.campaign_description = campaing.description
+                total_amount += new_item.amount
+                new_item.update_date = datetime.now()
                 if not new_item.identificated:
                     error = True
                     errors += 1
                 processed += 1
                 new_item.save()
             line_pos += 1
-    response_msg = '\nbSe procesaron: %i datos, Errores encontrados: %i' % (processed, errors)
+    response_msg = '\n Se procesaron: %i datos, Errores encontrados: %i, Monto total: %10.2f' % (processed,
+                                                                                             errors,
+                                                                                             total_amount)
     return error, response_msg
 
 
@@ -98,7 +105,7 @@ def get_description(line, file_type):
 
 def get_terminal_id(line, file_type):
     if file_type == 'PF':
-        data = int(line[59:64])
+        data = line[59:64]
     if file_type == 'CE':
         data = int(line[0:7])
     if file_type == 'PMC':
@@ -108,7 +115,7 @@ def get_terminal_id(line, file_type):
 
 def get_order_nro(line, file_type):
     if file_type == 'PF':
-        data = line[76:80]
+        data = line[72:80]
     if file_type == 'CE':
         data = int(line[31:41])
     if file_type == 'PMC':
@@ -116,23 +123,27 @@ def get_order_nro(line, file_type):
     return data
 
 
-def get_campaign_code(line, file_type):
+def get_campaign_code(line, file_type, payed_date):
+
+    sf_campaing_notfound = Campaing(campaing_code=0, description='Campaña No encontrada')
+    campaing_nro = 0
     if file_type == 'PF':
         campaing_nro = int(line[24:27])
     if file_type == 'CE':
         campaing_nro = int(line[27:30])
-    if file_type == 'PMC':
-        campaing_nro = 0
 
-    pay_date = get_agreement_date(line,file_type)
-
-    if campaing_nro in (0, 50, 20, 500):
-        campaing_nro = 244 + pay_date.month + ((2018 - pay_date.year) * 12)
+    pay_date = get_agreement_date(line, file_type)
     try:
-        sf_campaing = Campaing.objects.get(campaing_id=campaing_nro)
-    except:
-        return 0
-    return sf_campaing.campaing_code
+        if campaing_nro in (0, 50, 20, 500):
+            sf_campaing_match = Campaing.objects.get(valid_from__lte=pay_date,
+                                                     valid_to__gte=pay_date,
+                                                     loyalty_card=True)
+        else:
+                sf_campaing_match = Campaing.objects.get(campaing_id=campaing_nro)
+
+        return sf_campaing_match
+    except Exception as e:
+        return sf_campaing_notfound
 
 
 def get_partner_id(line, file_type):
@@ -199,7 +210,7 @@ def get_amount(line, file_type):
     if file_type == 'PMC':
         amount = line[58:68]
     amount = float(amount)/100
-g    return amount
+    return amount
 
 
 def get_first_payment_date(line, file_type):
@@ -213,15 +224,16 @@ def get_first_payment_date(line, file_type):
 
 
 def get_use_loyalty_card(line, file_type):
+    campaing_nro = 0
     if file_type == 'PF':
         campaing_nro = int(line[24:27])
     if file_type == 'CE':
         campaing_nro = int(line[28:30])
     if file_type == 'PMC':
-        campaing_nro = 0
-    if campaing_nro in (0, 50, 20, 500):
         return False
-    return True
+    if campaing_nro in (50, 20, 500):
+        return True
+    return False
 
 
 def get_payment_method(line, file_type):

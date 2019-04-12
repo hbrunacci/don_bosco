@@ -2,6 +2,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.contrib import messages
+from datetime import timedelta
 import json
 import csv
 from django.shortcuts import render
@@ -81,7 +82,7 @@ def exportar_csv(request):
             # Obtener los objetos que deseas exportar e iterar
             # filtrado por los campos del formulario
             range = form.cleaned_data.get('date_range_with_format')
-            exporteds = form.cleaned_data.get('is_exported')
+            range = (range[0], range[1] + timedelta(days=1))
             for_update = SalesforceFile.objects.filter(contact_id__in=[0, -1])
             if for_update:
                 for item in for_update:
@@ -100,11 +101,7 @@ def exportar_csv(request):
 
                     except Exception as e:
                         pass
-            if exporteds:
-                objetos = SalesforceFile.objects.filter(agreement_date__range=range).exclude(contact_id__in=[0, -1])
-            else:
-                objetos = SalesforceFile.objects.filter(agreement_date__range=range, export_date__isnull=True)\
-                    .exclude(contact_id__in=[0, -1])
+            objetos = SalesforceFile.objects.filter(update_date__range=range).exclude(contact_id__in=[0, -1])
 
             objects_total = objetos.count()
             filename = 'SF_%s_%s (%i).csv' %(range[0], range[1], objects_total)
@@ -117,14 +114,15 @@ def exportar_csv(request):
             # Se usa el response como un "archivo" destino
             writer = csv.writer(response, dialect="dbosco")
             # encabezado del archivo
-            header = ('Donante', 'Banco', 'Canal de Ingreso', 'Tratamiento', 'CBU', 'Descripción', 'Estado',
+            header = ('Id','Donante', 'Banco', 'Canal de Ingreso', 'Tratamiento', 'CBU', 'Descripción', 'Estado',
                       'Fecha de compromiso', 'Fecha de fin de compromiso', 'Fecha para realizar primer  cobranza',
                       'Forma de Pago', 'Frecuencia', 'Moneda','Monto en pesos', 'Monto en otra moneda',
-                      'Número de Sobre', 'Tipo de compromiso', 'Donó tarjeta donante', 'Campaña')
+                      'Número de Sobre', 'Tipo de compromiso', 'Donó tarjeta donante', 'Campaña','Descripcion Campaña')
             row = header
             writer.writerow(row)
             for objeto in objetos:
                 row = [
+                    objeto.id,
                     objeto.contact_id,  # Donante
                     objeto.bank,   # Banco
                     objeto.source,   # Canal de Ingreso
@@ -145,6 +143,7 @@ def exportar_csv(request):
                     objeto.agreement_type,   # Tipo de compromiso
                     objeto.use_loyalty_card,   # Donó tarjeta donante
                     objeto.campaign_code,   # Campaña
+                    objeto.campaign_description,
                     ]
                 objeto.export()
                 writer.writerow(row)

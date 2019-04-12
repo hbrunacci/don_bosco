@@ -8,11 +8,9 @@ class SalesforceFileForm(forms.ModelForm):
     # Date Range Fields
     date_range_with_format = fields.DateRangeField(input_formats=['%d/%m/%Y'], widget=widgets.DateRangeWidget(format='%d/%m/%Y'))
     date_range_with_format.label= 'Rango de Fechas'
-    is_exported = forms.BooleanField(required=False)
-    is_exported.label='Incluir ya generados anteriormente'
     class Meta:
         model = SalesforceFile
-        fields = ['date_range_with_format', 'is_exported']
+        fields = ['date_range_with_format']
 
 
 class UnidentifiedForm(forms.ModelForm):

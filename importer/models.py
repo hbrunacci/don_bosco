@@ -5,11 +5,11 @@ from django.utils import timezone
 class BaseTable(models.Model):
 
     id = models.AutoField(primary_key=True)
-    created_date = models.DateTimeField(
+    created_date = models.DateTimeField(editable=False,
         default=timezone.now)
-    update_date = models.DateTimeField(
+    update_date = models.DateTimeField(editable=False,
         default=timezone.now)
-    export_date = models.DateTimeField(
+    export_date = models.DateTimeField(editable=False,
         blank=True, null=True)
 
     class Meta:
@@ -25,10 +25,18 @@ class Sf_Ids(BaseTable):
 
 
 class Campaing(BaseTable):
-    campaing_id = models.CharField(
-        max_length=10,default='')
+    campaing_id = models.CharField(verbose_name='Codigo en campaña',
+        max_length=10,
+        default='')
     campaing_code = models.CharField(
-        max_length=50, default='')
+        verbose_name='Codigo Salesforce',
+        max_length=50,
+        default='')
+    valid_from = models.DateField('Valida desde')
+    valid_to = models.DateField('Valida hasta')
+    loyalty_card = models.BooleanField(default=False, verbose_name='Usa credencial')
+    description = models.CharField(max_length=150,default='', verbose_name='Descripcion campaña')
+
 
     class Meta:
         verbose_name = 'Campaña'
@@ -62,7 +70,8 @@ class SalesforceFile(BaseTable):
     agreement_type = models.CharField(max_length=200)
     use_loyalty_card = models.BooleanField()
     campaign_code = models.CharField(max_length=50, default='')
-    terminal_id = models.CharField(max_length=10,default='')
+    campaign_description = models.CharField(max_length=150, default='')
+    terminal_id = models.CharField(max_length=10, default='')
     order_nro = models.CharField(max_length=10, default='')
     identificated = models.BooleanField()
 
