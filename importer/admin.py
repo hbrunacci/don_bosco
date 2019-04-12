@@ -14,6 +14,15 @@ class PFAdmin(ImportExportModelAdmin):
 
 class CampaingAdmin(ImportExportModelAdmin):
     resource_class = Campaing_Resourse
+    list_display = ('campaing_id',
+                    'campaing_code',
+                    'valid_from',
+                    'valid_to',
+                    'loyalty_card',
+                    'description')
+    search_fields = ('campaing_code','valid_from','valid_to')
+
+    ordering = ('id',)  # The negative sign indicate descendent order
 
 
 class SF_idsAdmin(ImportExportModelAdmin):

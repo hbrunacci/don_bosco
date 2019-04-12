@@ -28,11 +28,26 @@ class Sf_ids_Resource(resources.ModelResource):
 class Campaing_Resourse(resources.ModelResource):
     class Meta:
         model = Campaing
-        fields = ('campaing_id', 'campaing_code',)
-        import_id_fields = ['campaing_id']
+        fields = ('campaing_id',
+                  'campaing_code',
+                  'valid_from',
+                  'valid_to',
+                  'loyalty_card',
+                  'description',
+                  )
+        import_id_fields = ['campaing_code']
+
+        widgets = {
+            'valid_from': {'format': '%m-%d-%Y'},
+            'valid_to': {'format': '%d-%m-%Y'},
+
+        }
+
 
     def before_save_instance(self, instance, using_transactions, dry_run):
         if instance.campaing_code == '':
             self.skip_row(instance)
         if instance.campaing_id == '':
             self.skip_row(instance)
+
+
