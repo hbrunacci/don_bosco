@@ -124,7 +124,6 @@ def get_order_nro(line, file_type):
 
 
 def get_campaign_code(line, file_type, payed_date):
-
     sf_campaing_notfound = Campaing(campaing_code=0, description='Campaña No encontrada')
     campaing_nro = 0
     if file_type == 'PF':
@@ -132,18 +131,22 @@ def get_campaign_code(line, file_type, payed_date):
     if file_type == 'CE':
         campaing_nro = int(line[27:30])
 
-    pay_date = get_agreement_date(line, file_type)
-    try:
-        if campaing_nro in (0, 50, 20, 500):
-            sf_campaing_match = Campaing.objects.get(valid_from__lte=pay_date,
-                                                     valid_to__gte=pay_date,
-                                                     loyalty_card=True)
-        else:
-                sf_campaing_match = Campaing.objects.get(campaing_id=campaing_nro)
-
+    if file_type == 'PMC':
+        sf_campaing_match = Campaing.objects.get(description='FIDELIZADOS GENERAL')
         return sf_campaing_match
-    except Exception as e:
-        return sf_campaing_notfound
+    else:
+         try:
+            if campaing_nro in (0, 50, 20, 500):
+                sf_campaing_match = Campaing.objects.get(description='FIDELIZADOS POSTAL')
+            else:
+                sf_campaing_match = Campaing.objects.get(campaing_id=campaing_nro)
+                if sf_campaing_match.valid_to.year < datetime.now().year:
+                    sf_campaing_match = Campaing.objects.get(description='FIDELIZADOS POSTAL')
+
+
+            return sf_campaing_match
+         except Exception as e:
+            return sf_campaing_notfound
 
 
 def get_partner_id(line, file_type):
