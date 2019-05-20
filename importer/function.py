@@ -55,8 +55,6 @@ def process_data(lines, file_type):
                 new_item = SalesforceFile.objects.filter(terminal_id=terminal_id, order_nro=order_nro,partner_id=partner_id).first()
                 if not new_item:
                     new_item = SalesforceFile()
-                else:
-                    print(line_pos)
                 new_item.order_nro = order_nro
                 new_item.terminal_id = terminal_id
                 new_item.description = description.strip()
@@ -124,7 +122,6 @@ def get_order_nro(line, file_type):
 
 
 def get_campaign_code(line, file_type, payed_date):
-    sf_campaing_notfound = Campaing(campaing_code=0, description='Campaña No encontrada')
     campaing_nro = 0
     if file_type == 'PF':
         campaing_nro = int(line[24:27])
@@ -136,17 +133,18 @@ def get_campaign_code(line, file_type, payed_date):
         return sf_campaing_match
     else:
          try:
-            if campaing_nro in (0, 50, 20, 500):
+            if campaing_nro in (0, 50, 20, 500, ):
                 sf_campaing_match = Campaing.objects.get(description='FIDELIZADOS POSTAL')
             else:
                 sf_campaing_match = Campaing.objects.get(campaing_id=campaing_nro)
+                print(campaing_nro)
                 if sf_campaing_match.valid_to.year < datetime.now().year:
                     sf_campaing_match = Campaing.objects.get(description='FIDELIZADOS POSTAL')
 
 
             return sf_campaing_match
          except Exception as e:
-            return sf_campaing_notfound
+             return Campaing.objects.get(description='FIDELIZADOS POSTAL')
 
 
 def get_partner_id(line, file_type):
