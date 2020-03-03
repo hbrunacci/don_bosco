@@ -1,0 +1,288 @@
+public without sharing class DonacionFormController {
+
+    private Compromiso__c compromiso;
+    private Contact contact;
+
+    public Boolean hasErrors {get; set;}
+    public Boolean isSuccess {get; set;}
+    public String[] errors {get; set;}
+    public DonacionFormWrapper formData {get; set;}
+
+    // Temp date support
+    public Contact aux {get; set;}
+
+    public static final String DEBITO_EN_CUENTA = 'debito-en-cuenta';
+    public static final String TARJETA_DE_CREDITO = 'tarjeta-de-credito';
+
+
+    public DonacionFormController() {
+
+        compromiso = null;
+        contact = null;
+
+        isSuccess = false;
+        hasErrors = false;
+
+        errors = new String[] {};
+        formData = new DonacionFormWrapper();
+
+        aux = new Contact();
+        aux.Necesita_recibo__c = 'No';
+        aux.Tipo_de_documento__c = 'DNI';
+    }
+
+    public PageReference submitJovenes() {
+
+        formData.paymentChannel = 'Web PLJ';
+        return submit();
+    }
+
+    public PageReference submitObraBosco() {
+        formData.paymentChannel = 'Web_DB';
+        return submit();
+    }
+
+    private PageReference submit() {
+
+        PageReference result = null;
+
+        System.debug(JSON.serializePretty(formData));
+
+        isSuccess = isFormValid();
+
+        hasErrors = !isSuccess;
+
+        System.debug(JSON.serializePretty(errors));
+
+        if (isSuccess) {
+
+            try {
+
+                contact = formData.buildContact();
+
+                Contact existingContact = getContactsByDNI(contact.N_mero_de_Documento__c);
+
+                if (existingContact == null) {
+                    existingContact = getContactsByEmail(contact.Email);
+                }
+
+                if (existingContact != null) {
+                    contact.Id = existingContact.Id;
+                }
+
+                // Add aux date
+                contact.Birthdate = aux.Birthdate;
+                contact.Necesita_recibo__c = aux.Necesita_recibo__c;
+                contact.Cuit_Cuil__c = aux.Cuit_Cuil__c;
+                contact.Tipo_de_documento__c = aux.Tipo_de_documento__c;
+
+                upsert contact;
+
+                compromiso = formData.buildCompromiso(contact);
+                insert compromiso;
+
+                formData = new DonacionFormWrapper();
+                ApexPages.currentPage().getParameters().put('success', 'true');
+            }
+            catch (DMLException dmlException) {
+                isSuccess = false;
+                hasErrors = true;
+                errors.clear();
+
+                // errors.add(dmlException.getMessage());
+                // errors.add(dmlException.getStackTraceString());
+
+                errors.add('Ha occurrido un error. Comuniquese a nuestro correo de contacto');
+
+            }
+        }
+
+        return result;
+    }
+
+    public Boolean isFormValid() {
+
+        Boolean result = true;
+
+        // Check Contact Data First
+
+        errors = new String[] {};
+
+        if (String.isEmpty(formData.firstName)) {
+            errors.add('Completar Nombre');
+        }
+        if (String.isEmpty(formData.lastName)) {
+            errors.add('Completar Apellido');
+        }
+        if (String.isEmpty(formData.email)) {
+            errors.add('Completar Correo Electronico');
+        }
+
+        if (String.isEmpty(formData.dni) && aux.Tipo_de_documento__c == 'DNI') {
+            errors.add('Completar DNI');
+        }
+        else if (formData.country == 'AR' && formData.dni.length() < 6 && aux.Tipo_de_documento__c == 'DNI') {
+            errors.add('DNI tiene que tener al menos 6 dígitos');
+        }
+
+        if (String.isEmpty(formData.passport) && aux.Tipo_de_documento__c == 'Pasaporte') {
+            errors.add('Completar Pasaporte');
+        }
+
+        if (String.isEmpty(formData.address)) {
+            errors.add('Completar Direccion');
+        }
+        if (String.isEmpty(formData.city)) {
+            errors.add('Completar Localidad');
+        }       
+        if (String.isEmpty(formData.location)) {
+            errors.add('Completar Provincia');
+        }
+        if (String.isEmpty(formData.postalCode)) {
+            errors.add('Completar Codigo Postal');
+        }
+
+        if (aux.Birthdate == null) {
+            errors.add('Completar Fecha de Nacimiento');
+        }
+        else if (aux.Birthdate >= Date.today()) {
+            // Restriccion por ser mayor de edad?
+            errors.add('Fecha de Nacimiento Incorrecta');
+        }
+
+        if (!errors.isEmpty()) {
+            result = false;
+
+            // Send the validation before checking payment details
+            return result;
+        }
+
+        // Check Compromiso__c Data Second
+
+        if (formData.amount == null || formData.amount <= 0) {
+            errors.add('Debe seleccionar el aporte que desea realizar');
+        }
+
+        if (String.isEmpty(formData.frequency)) {
+            errors.add('Completar Tipo de Aporte');
+        }
+
+        if (TARJETA_DE_CREDITO.equalsIgnoreCase(formData.paymentType)) {
+
+            if (String.isEmpty(formData.cardType)) {
+                errors.add('Completar Tipo de Tarjeta');
+            }
+
+            if (formData.isEmptyCard()) {
+                errors.add('Completar Numero Tarjeta');
+            }
+            else if (formData.cardType == 'Visa Credito' && formData.cardNumberVisa != null && formData.cardNumberVisa.length() < 16) {
+                errors.add('Debe indicar la cantidad de dígitos indicada según la tarjeta');
+            }
+            else if (formData.cardType == 'Visa Debito' && formData.cardNumberVisa != null && formData.cardNumberVisa.length() < 16) {
+                errors.add('Debe indicar la cantidad de dígitos indicada según la tarjeta');
+            }
+            else if (formData.cardType == 'Mastercard' && formData.cardNumberMaster != null && formData.cardNumberMaster.length() < 16) {
+                errors.add('Debe indicar la cantidad de dígitos indicada según la tarjeta');
+            }
+            else if (formData.cardType == 'American Express' && formData.cardNumberAmex != null && formData.cardNumberAmex.length() < 15) {
+                errors.add('Debe indicar la cantidad de dígitos indicada según la tarjeta');
+            }
+            else if (formData.cardType == 'Diners Club' && formData.cardNumberDinners != null && formData.cardNumberDinners.length() < 15) {
+                errors.add('Debe indicar la cantidad de dígitos indicada según la tarjeta');
+            }
+
+        }
+        else if (DEBITO_EN_CUENTA.equalsIgnoreCase(formData.paymentType)) {
+
+            if (String.isEmpty(formData.cbu)) {
+                errors.add('Completar CBU');
+            }
+            else if (formData.cbu.length() < 22) {
+                errors.add('CBU tiene que tener 22 dígitos');
+            }
+        }
+        else {
+            errors.add('Completar Método de Pago');
+        }
+
+        if (aux.Necesita_recibo__c == 'Sí' && (aux.Cuit_Cuil__c == null || (String.valueOf(aux.Cuit_Cuil__c).length() < 11))) {
+            errors.add('Completar CUIT/CUIL (11 dígitos)');
+        }
+
+        if (!errors.isEmpty()) {
+            result = false;
+        }
+
+        return result;
+    }
+
+    public SelectOption[] getLocationOptions() {
+
+        SelectOption[] result = new SelectOption[] {};
+
+        result.add(new SelectOption('Buenos Aires', 'Buenos Aires'));
+        result.add(new SelectOption('Chaco', 'Chaco'));
+        result.add(new SelectOption('Córdoba', 'Córdoba'));
+        result.add(new SelectOption('Ciudad de Buenos Aires', 'Ciudad de Buenos Aires'));
+        result.add(new SelectOption('Chubut', 'Chubut'));
+        result.add(new SelectOption('Corrientes', 'Corrientes'));
+        result.add(new SelectOption('Catamarca', 'Catamarca'));
+        result.add(new SelectOption('Entre Ríos', 'Entre Ríos'));
+        result.add(new SelectOption('Formosa', 'Formosa'));
+        result.add(new SelectOption('Jujuy', 'Jujuy'));
+        result.add(new SelectOption('La Pampa', 'La Pampa'));
+        result.add(new SelectOption('La Rioja', 'La Rioja'));
+        result.add(new SelectOption('Misiones', 'Misiones'));
+        result.add(new SelectOption('Mendoza', 'Mendoza'));
+        result.add(new SelectOption('Neuquén', 'Neuquén'));
+        result.add(new SelectOption('Río Negro', 'Río Negro'));
+        result.add(new SelectOption('Salta', 'Salta'));
+        result.add(new SelectOption('Santa Cruz', 'Santa Cruz'));
+        result.add(new SelectOption('Santiago del Estero', 'Santiago del Estero'));
+        result.add(new SelectOption('Santa Fe', 'Santa Fe'));
+        result.add(new SelectOption('San Juan', 'San Juan'));
+        result.add(new SelectOption('San Luis', 'San Luis'));
+        result.add(new SelectOption('Tierra del Fuego', 'Tierra del Fuego'));
+        result.add(new SelectOption('Tucumán', 'Tucumán'));
+
+        return result;
+    }
+
+
+    public SelectOption[] getCountryOptions() {
+
+        SelectOption[] result = new SelectOption[] {};
+        Schema.DescribeFieldResult fieldResult = Schema.getGlobalDescribe().get('User').getDescribe().fields.getMap().get('CountryCode').getDescribe();
+
+        Schema.PicklistEntry[] entries = fieldResult.getPicklistValues();
+
+        for (Schema.PicklistEntry entry :entries) {
+            result.add(new SelectOption(entry.getValue(), entry.getLabel()));
+        }
+
+        // result.add(new SelectOption('Argentina', 'Argentina'));
+
+        return result;
+    }
+
+    public Boolean getHasStandardErrors() {
+
+        return ApexPages.hasMessages();
+    }
+
+    private static Contact getContactsByEmail(String email) {
+
+        Contact[] result = [SELECT Id FROM Contact WHERE Email = :email];
+
+        return (!result.isEmpty()) ? result[0] : null;
+    }
+
+    private static Contact getContactsByDNI(String dni) {
+
+        Contact[] result = [SELECT Id FROM Contact WHERE N_mero_de_Documento__c = :dni];
+
+        return (!result.isEmpty()) ? result[0] : null;
+    }
+
+}

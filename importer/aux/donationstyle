@@ -1,0 +1,293 @@
+<apex:component >
+
+    <apex:includeScript value="{!URLFOR($Resource.Formularios_Donacion, 'jquery-3.3.1.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.Formularios_Donacion, 'bootstrap-4.0.0-dist/js/bootstrap.min.js')}" />
+
+    <apex:stylesheet value="{!URLFOR($Resource.Formularios_Donacion, 'bootstrap-4.0.0-dist/css/bootstrap.min.css')}" />
+
+    <style>
+
+        .dateFormat {
+            display: none !important;
+        }
+
+        .container select {
+            height: 31px;
+        }
+
+        .form-group {
+            margin-bottom: 0rem;
+        }
+
+        .container .alert.alert-danger ul {
+            margin-bottom: 0;
+        }
+
+        .container .alert.alert-success p {
+            margin-bottom: 0rem;
+        }
+
+        .container-fluid select {
+            height: 31px;
+        }
+
+        .spinner {
+            margin: 100px auto;
+            width: 50px;
+            height: 40px;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .spinner > div {
+            background-color: #333;
+            height: 100%;
+            width: 6px;
+            display: inline-block;
+
+            -webkit-animation: sk-stretchdelay 1.2s infinite ease-in-out;
+            animation: sk-stretchdelay 1.2s infinite ease-in-out;
+        }
+
+        .spinner .rect2 {
+            -webkit-animation-delay: -1.1s;
+            animation-delay: -1.1s;
+        }
+
+        .spinner .rect3 {
+            -webkit-animation-delay: -1.0s;
+            animation-delay: -1.0s;
+        }
+
+        .spinner .rect4 {
+            -webkit-animation-delay: -0.9s;
+            animation-delay: -0.9s;
+        }
+
+        .spinner .rect5 {
+            -webkit-animation-delay: -0.8s;
+            animation-delay: -0.8s;
+        }
+
+        @-webkit-keyframes sk-stretchdelay {
+            0%, 40%, 100% { -webkit-transform: scaleY(0.4) }
+            20% { -webkit-transform: scaleY(1.0) }
+        }
+
+        @keyframes sk-stretchdelay {
+            0%, 40%, 100% {
+                transform: scaleY(0.4);
+                -webkit-transform: scaleY(0.4);
+            }  20% {
+                transform: scaleY(1.0);
+                -webkit-transform: scaleY(1.0);
+            }
+        }
+
+        #spinner-container {
+            width: 100%;
+            height: 900px;
+            position: absolute;
+            left: 0;
+            right: 0;
+            margin: auto;
+            z-index: 999;
+            background-color: rgba(50,50,50,0.5);
+        }
+
+        .dateOnlyInput input {
+            width: 100%
+        }
+
+        .btn-secondary {
+
+            color: #fff !important;
+            background-color: #6c757d !important;
+            border-color: #6c757d !important;
+        }
+
+        .btn-secondary:hover {
+            color: #fff !important;
+            background-color: #5a6268 !important;
+            border-color: #545b62 !important;
+        }
+
+        .btn-success {
+            color: #fff !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+        }
+
+        .btn-primary {
+            color: #fff  !important;
+            background-color: #007bff !important;
+            border-color: #007bff !important;
+        }
+
+        .btn-success:hover {
+            color: #fff !important;
+            background-color: #218838 !important;
+            border-color: #1e7e34 !important;
+        }
+
+        .btn-danger {
+            color: #fff !important;
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+        }
+
+        .btn {
+
+            background-image: none !important;
+            display: inline-block !important;
+            font-weight: 400 !important;
+            text-align: center !important;
+            white-space: nowrap !important;
+            vertical-align: middle !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            border: 1px solid transparent !important;
+            padding: .375rem .75rem !important;
+            font-size: 1rem !important;
+            line-height: 1.5 !important;
+            border-radius: .25rem !important;
+            transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out !important;
+        }
+
+    </style>
+
+    <script>
+
+        var j$ = jQuery.noConflict();
+
+
+        j$(function(){
+
+
+            j$(".tipo-documento").change(function() {
+
+                var docSelected = j$(".tipo-documento").val();
+
+                if (docSelected === 'DNI') {
+                    j$(".dni-doc").show();
+                    j$(".pass-doc").hide();
+                }
+                else {
+                    j$(".dni-doc").hide();
+                    j$(".pass-doc").show();
+                }
+            });
+
+            j$(".quantity").keypress(function (e) {
+                //if the letter is not digit then display error and don't type anything
+                if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+                    //display error message
+                    return false;
+                }
+            });
+
+            j$(".card-types").change(function() {
+
+                j$(".form-group.tarjeta").hide();
+
+                var cardSelected = j$(".card-types").val();
+
+                if (cardSelected === 'Visa Credito') {
+                    j$(".form-group.tarjeta.visa").show();
+                }
+                else if (cardSelected === 'Visa Debito') {
+                    j$(".form-group.tarjeta.visa").show();
+                }
+                else if (cardSelected === 'Mastercard') {
+                    j$(".form-group.tarjeta.master").show();
+                }
+                else if (cardSelected === 'American Express') {
+                    j$(".form-group.tarjeta.amex").show();
+                }
+                else if (cardSelected === 'Diners Club') {
+                    j$(".form-group.tarjeta.dinners").show();
+                }
+            });
+
+            j$("#metodo-pago button").click(function(){
+
+                j$("#metodo-pago button").removeClass("btn-danger");
+                j$("#metodo-pago button").addClass("btn-secondary");
+                j$(this).removeClass("btn-secondary");
+                j$(this).addClass("btn-danger");
+
+                var metodoPago = j$(this).attr("datos-pago");
+
+                j$("[id$='paymentMethodId']").val(metodoPago);
+
+                j$(".datos-pago").hide();
+                if (metodoPago === 'tarjeta-de-credito') {
+                    j$("#tarjeta-de-credito").show();
+                }
+                else if (metodoPago === 'debito-en-cuenta') {
+                    j$("#debito-en-cuenta").show();
+                }
+            });
+
+            j$("#aporte button").click(function(){
+
+                j$(".datos-aporte-amount").hide();
+
+                j$("#aporte button").removeClass("btn-danger");
+                j$("#aporte button").addClass("btn-secondary");
+                j$(this).removeClass("btn-secondary");
+                j$(this).addClass("btn-danger");
+
+                var datosAporte = j$(this).attr("datos-aporte");
+
+                if (datosAporte === 'otro') {
+                    j$("[id$='datos-aporte-amount']").val(undefined);
+                    j$(".datos-aporte-amount").show();
+                }
+                else {
+                    j$("[id$='datos-aporte-amount']").val(datosAporte);
+                }
+            });
+
+            j$("#tipo-aporte button").click(function(){
+
+                j$("#tipo-aporte button").removeClass("btn-danger");
+                j$("#tipo-aporte button").addClass("btn-secondary");
+                j$(this).removeClass("btn-secondary");
+                j$(this).addClass("btn-danger");
+
+                var tipoPago = j$(this).attr("datos-tipo");
+
+                j$("[id$='paymentTypeId']").val(tipoPago);
+
+            });
+
+            j$(".recibo").change(function() {
+
+                var value = j$(this).val();
+
+                if (value === 'Sí') {
+                    j$("#cuit").show();
+                }
+                else {
+                    j$("#cuit").hide();
+                }
+            });
+
+            var startDate = 1900;
+            var endDate = (new Date()).getFullYear() - 2;
+
+            for (var i = endDate; i >= startDate; i--) {
+                var newOption = new Option(i, i);
+                j$(newOption).html(i);
+                j$("#calYearPicker").prepend(newOption);
+            }
+
+        })
+
+
+    </script>
+
+</apex:component>
