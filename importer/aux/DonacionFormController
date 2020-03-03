@@ -134,7 +134,7 @@ public without sharing class DonacionFormController {
         }
         if (String.isEmpty(formData.city)) {
             errors.add('Completar Localidad');
-        }       
+        }
         if (String.isEmpty(formData.location)) {
             errors.add('Completar Provincia');
         }
