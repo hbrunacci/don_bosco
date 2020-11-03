@@ -74,6 +74,7 @@ def process_data(lines, file_type):
                 new_item.process = get_process(line, file_type)
                 new_item.state = get_state(line, file_type)
                 new_item.use_loyalty_card = get_use_loyalty_card(line, file_type)
+                new_item.campaign_code_old = get_campaign_old_code(line, file_type)
                 campaing = get_campaign_code(line, file_type, new_item.agreement_date)
                 new_item.campaign_code = campaing.campaing_code
                 new_item.campaign_description = campaing.description
@@ -120,31 +121,46 @@ def get_order_nro(line, file_type):
         data = line[77:83]
     return data
 
+def get_campaign_old_code(line, file_type):
+    campaing_old_code = 0
+    if file_type == 'PF':
+        campaing_old_code = int(line[24:27])
+    elif file_type == 'CE':
+        campaing_old_code = int(line[27:30])
+    elif file_type == 'PMC':
+        campaing_old_code = 'PMC'
+    else:
+        campaing_old_code = 0
+    return campaing_old_code
 
 def get_campaign_code(line, file_type, payed_date):
     campaing_nro = 0
+    fecha = payed_date
     if file_type == 'PF':
         campaing_nro = int(line[24:27])
     if file_type == 'CE':
         campaing_nro = int(line[27:30])
 
     if file_type == 'PMC':
-        sf_campaing_match = Campaing.objects.get(description='FIDELIZADOS GENERAL')
-        return sf_campaing_match
+        sf_campaing_match = Campaing.objects.filter(description__icontains='GENERAL') \
+            .filter(valid_from__lte=fecha).filter(valid_to__gte=fecha)
+        return sf_campaing_match[0]
     else:
-         try:
-            if campaing_nro in (0, 50, 20, 500, ):
-                sf_campaing_match = Campaing.objects.get(description='FIDELIZADOS POSTAL')
-            else:
+        if campaing_nro in (0, 50, 20, 500, ):
+            sf_campaing_match = Campaing.objects.filter(description__icontains='POSTAL')\
+                .filter(valid_from__lte=fecha)\
+                .filter(valid_to__gte=fecha)
+            sf_campaing_match = sf_campaing_match[0]
+        else:
+            try:
                 sf_campaing_match = Campaing.objects.get(campaing_id=campaing_nro)
-                print(campaing_nro)
-                if sf_campaing_match.valid_to.year < datetime.now().year:
-                    sf_campaing_match = Campaing.objects.get(description='FIDELIZADOS POSTAL')
+            except:
+                sf_campaing_match = Campaing.objects.filter(description__icontains='POSTAL') \
+                    .filter(valid_from__lte=fecha) \
+                    .filter(valid_to__gte=fecha)
+                sf_campaing_match = sf_campaing_match[0]
 
-
-            return sf_campaing_match
-         except Exception as e:
-             return Campaing.objects.get(description='FIDELIZADOS POSTAL')
+        return sf_campaing_match
 
 
 def get_partner_id(line, file_type):

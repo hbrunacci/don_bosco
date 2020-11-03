@@ -1,6 +1,8 @@
 from import_export import resources
 from .models import *
 
+
+
 class Sf_Resource(resources.ModelResource):
     class Meta:
         model = SalesforceFile

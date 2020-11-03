@@ -42,6 +42,8 @@ class Campaing(BaseTable):
         verbose_name = 'Campaña'
         verbose_name_plural = 'Campañas'
 
+    def __str__(self):
+        return self.campaing_id + ' ' + self.description
 
 class SalesforceFile(BaseTable):
 
@@ -69,6 +71,7 @@ class SalesforceFile(BaseTable):
     amount = models.DecimalField(max_digits=8, decimal_places=2)
     agreement_type = models.CharField(max_length=200)
     use_loyalty_card = models.BooleanField()
+    campaign_code_old = models.CharField(max_length=50, default='')
     campaign_code = models.CharField(max_length=50, default='')
     campaign_description = models.CharField(max_length=150, default='')
     terminal_id = models.CharField(max_length=10, default='')
